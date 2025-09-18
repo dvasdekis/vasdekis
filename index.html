@@ -153,80 +153,26 @@
         
         // Create V shape vertices
         function createVVertices() {
-            const thickness = 0.15;
-            const height = 2.0;
-            const width = 1.5;
-            const depth = 0.1;
-            
-            // V shape made of two rectangular prisms
-            const vertices = [];
-            
-            // Left arm of the V
-            const leftAngle = -Math.PI / 6; // 30 degrees
-            const leftCos = Math.cos(leftAngle);
-            const leftSin = Math.sin(leftAngle);
-            
-            // Left arm vertices (rotated rectangle)
-            const leftHalfWidth = thickness / 2;
-            const leftHalfHeight = height / 2;
-            
-            // Front face
-            vertices.push(
-                -leftHalfWidth * leftCos - leftHalfHeight * leftSin, leftHalfWidth * leftSin - leftHalfHeight * leftCos, depth,
-                leftHalfWidth * leftCos - leftHalfHeight * leftSin, -leftHalfWidth * leftSin - leftHalfHeight * leftCos, depth,
-                leftHalfWidth * leftCos + leftHalfHeight * leftSin, -leftHalfWidth * leftSin + leftHalfHeight * leftCos, depth,
+            // Very simple and large V shape - just 2 triangles
+            const vertices = [
+                // Left triangle (left arm of V)
+                -1.5, 1.0, 0.0,   // Top left
+                -0.2, -1.0, 0.0,  // Bottom center
+                -0.5, 1.0, 0.0,   // Top left inner
                 
-                -leftHalfWidth * leftCos - leftHalfHeight * leftSin, leftHalfWidth * leftSin - leftHalfHeight * leftCos, depth,
-                leftHalfWidth * leftCos + leftHalfHeight * leftSin, -leftHalfWidth * leftSin + leftHalfHeight * leftCos, depth,
-                -leftHalfWidth * leftCos + leftHalfHeight * leftSin, leftHalfWidth * leftSin + leftHalfHeight * leftCos, depth
-            );
+                // Right triangle (right arm of V)
+                1.5, 1.0, 0.0,    // Top right
+                0.5, 1.0, 0.0,    // Top right inner
+                0.2, -1.0, 0.0,   // Bottom center
+            ];
             
-            // Back face
-            vertices.push(
-                -leftHalfWidth * leftCos - leftHalfHeight * leftSin, leftHalfWidth * leftSin - leftHalfHeight * leftCos, -depth,
-                leftHalfWidth * leftCos + leftHalfHeight * leftSin, -leftHalfWidth * leftSin + leftHalfHeight * leftCos, -depth,
-                leftHalfWidth * leftCos - leftHalfHeight * leftSin, -leftHalfWidth * leftSin - leftHalfHeight * leftCos, -depth,
-                
-                -leftHalfWidth * leftCos - leftHalfHeight * leftSin, leftHalfWidth * leftSin - leftHalfHeight * leftCos, -depth,
-                -leftHalfWidth * leftCos + leftHalfHeight * leftSin, leftHalfWidth * leftSin + leftHalfHeight * leftCos, -depth,
-                leftHalfWidth * leftCos + leftHalfHeight * leftSin, -leftHalfWidth * leftSin + leftHalfHeight * leftCos, -depth
-            );
-            
-            // Right arm of the V
-            const rightAngle = Math.PI / 6; // 30 degrees
-            const rightCos = Math.cos(rightAngle);
-            const rightSin = Math.sin(rightAngle);
-            
-            const rightHalfWidth = thickness / 2;
-            const rightHalfHeight = height / 2;
-            
-            // Front face
-            vertices.push(
-                -rightHalfWidth * rightCos - rightHalfHeight * rightSin, rightHalfWidth * rightSin - rightHalfHeight * rightCos, depth,
-                rightHalfWidth * rightCos - rightHalfHeight * rightSin, -rightHalfWidth * rightSin - rightHalfHeight * rightCos, depth,
-                rightHalfWidth * rightCos + rightHalfHeight * rightSin, -rightHalfWidth * rightSin + rightHalfHeight * rightCos, depth,
-                
-                -rightHalfWidth * rightCos - rightHalfHeight * rightSin, rightHalfWidth * rightSin - rightHalfHeight * rightCos, depth,
-                rightHalfWidth * rightCos + rightHalfHeight * rightSin, -rightHalfWidth * rightSin + rightHalfHeight * rightCos, depth,
-                -rightHalfWidth * rightCos + rightHalfHeight * rightSin, rightHalfWidth * rightSin + rightHalfHeight * rightCos, depth
-            );
-            
-            // Back face
-            vertices.push(
-                -rightHalfWidth * rightCos - rightHalfHeight * rightSin, rightHalfWidth * rightSin - rightHalfHeight * rightCos, -depth,
-                rightHalfWidth * rightCos + rightHalfHeight * rightSin, -rightHalfWidth * rightSin + rightHalfHeight * rightCos, -depth,
-                rightHalfWidth * rightCos - rightHalfHeight * rightSin, -rightHalfWidth * rightSin - rightHalfHeight * rightCos, -depth,
-                
-                -rightHalfWidth * rightCos - rightHalfHeight * rightSin, rightHalfWidth * rightSin - rightHalfHeight * rightCos, -depth,
-                -rightHalfWidth * rightCos + rightHalfHeight * rightSin, rightHalfWidth * rightSin + rightHalfHeight * rightCos, -depth,
-                rightHalfWidth * rightCos + rightHalfHeight * rightSin, -rightHalfWidth * rightSin + rightHalfHeight * rightCos, -depth
-            );
-            
+            console.log('V vertices created:', vertices.length / 3, 'triangles');
             return new Float32Array(vertices);
         }
         
         // Main WebGL setup and animation
         function main() {
+            console.log('Starting WebGL setup...');
             const canvas = document.getElementById('webgl-canvas');
             const gl = canvas.getContext('webgl');
             
@@ -234,12 +180,14 @@
                 alert('WebGL not supported');
                 return;
             }
+            console.log('WebGL context created successfully');
             
             // Set canvas size
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 gl.viewport(0, 0, canvas.width, canvas.height);
+                console.log('Canvas resized to:', canvas.width, 'x', canvas.height);
             }
             
             resizeCanvas();
@@ -251,8 +199,10 @@
             const program = createProgram(gl, vertexShader, fragmentShader);
             
             if (!program) {
+                console.error('Failed to create shader program');
                 return;
             }
+            console.log('Shader program created successfully');
             
             // Get attribute and uniform locations
             const positionLocation = gl.getAttribLocation(program, 'a_position');
@@ -261,11 +211,20 @@
             const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix');
             const colorLocation = gl.getUniformLocation(program, 'u_color');
             
+            console.log('Attribute and uniform locations:', {
+                position: positionLocation,
+                modelMatrix: modelMatrixLocation,
+                viewMatrix: viewMatrixLocation,
+                projectionMatrix: projectionMatrixLocation,
+                color: colorLocation
+            });
+            
             // Create V geometry
             const vertices = createVVertices();
             const positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            console.log('Vertex buffer created with', vertices.length, 'floats');
             
             // Set up matrices
             const modelMatrix = createMatrix4();
@@ -274,19 +233,23 @@
             
             // Set up view matrix (camera position)
             identity(viewMatrix);
-            translate(viewMatrix, 0, 0, -5);
+            translate(viewMatrix, 0, 0, -2);
             
-            // Enable depth testing
+            // Enable depth testing but disable culling
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
+            gl.disable(gl.CULL_FACE);
             
             // Hide loading text
             document.getElementById('loading').style.display = 'none';
+            console.log('Setup complete, starting animation...');
             
             // Animation loop
             let rotation = 0;
+            let frameCount = 0;
             function animate() {
                 rotation += 0.02;
+                frameCount++;
                 
                 // Clear canvas
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -307,7 +270,7 @@
                 gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
                 gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
                 gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
-                gl.uniform3f(colorLocation, 0.2, 0.5, 1.0); // Blue color
+                gl.uniform3f(colorLocation, 0.0, 0.7, 1.0); // Bright blue color
                 
                 // Set up vertex attributes
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -316,6 +279,10 @@
                 
                 // Draw the V
                 gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
+                
+                if (frameCount % 60 === 0) {
+                    console.log('Frame', frameCount, 'rotation:', rotation.toFixed(2));
+                }
                 
                 requestAnimationFrame(animate);
             }
