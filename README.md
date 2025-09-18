@@ -1,6 +1,12 @@
 # vasdekis
 Vasdekis homepage
 
+## Preview
+
+![Spinning Blue V Preview](https://github.com/user-attachments/assets/f0595df0-d182-494b-ba37-376d18b0bbfc)
+
+*The WebGL-rendered blue V that spins continuously and fills the entire viewport*
+
 ## Features
 
 - **WebGL Spinning Blue V**: A fully 3D animated blue letter "V" that continuously rotates
