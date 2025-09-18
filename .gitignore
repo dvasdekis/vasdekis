@@ -1,0 +1,18 @@
+# Development and testing files
+verify.js
+
+# Common build artifacts and dependencies
+node_modules/
+dist/
+build/
+*.log
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
