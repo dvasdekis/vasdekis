@@ -1,0 +1,8 @@
+name = "vasdekis"
+compatibility_date = "2024-01-01"
+
+[env.production]
+
+# Static site configuration
+# No build command needed as this is a static HTML/CSS/JS site
+# The site will be deployed directly from the root directory

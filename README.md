@@ -33,6 +33,26 @@ php -S localhost:8000
 
 Then visit `http://localhost:8000` in your browser.
 
+## Deployment
+
+This site is automatically deployed to Cloudflare Pages using GitHub Actions. The deployment pipeline:
+
+1. **Triggers**: Automatically deploys on pushes to `main` branch and creates preview deployments for pull requests
+2. **Build Process**: No build step required - deploys static files directly
+3. **Hosting**: Served from Cloudflare's global CDN for optimal performance
+
+### Setup Deployment
+
+To set up Cloudflare Pages deployment:
+
+1. Create a Cloudflare account and get your Account ID
+2. Generate a Cloudflare API token with Pages permissions
+3. Add the following secrets to your GitHub repository:
+   - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token
+   - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare Account ID
+
+The GitHub Actions workflow (`.github/workflows/deploy.yml`) will handle the rest automatically.
+
 ## Browser Compatibility
 
 Requires a modern browser with WebGL support:

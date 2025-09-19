@@ -1,0 +1,20 @@
+{
+  "name": "Vasdekis",
+  "description": "Vasdekis homepage with spinning blue V WebGL animation",
+  "homepage": "https://vasdekis.pages.dev",
+  "repository": "https://github.com/dvasdekis/vasdekis",
+  "deployment": {
+    "platform": "Cloudflare Pages",
+    "build_command": null,
+    "output_directory": ".",
+    "environment_variables": {
+      "NODE_VERSION": "18"
+    }
+  },
+  "features": [
+    "WebGL animation",
+    "Responsive design", 
+    "Static site",
+    "No build process required"
+  ]
+}
