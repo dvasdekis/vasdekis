@@ -16,3 +16,11 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfplan
