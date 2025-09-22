@@ -41,6 +41,25 @@ This site is automatically deployed to Cloudflare Pages using GitHub Actions. Th
 2. **Build Process**: No build step required - deploys static files directly
 3. **Hosting**: Served from Cloudflare's global CDN for optimal performance
 
+### Infrastructure as Code
+
+The Cloudflare Pages project is managed using Terraform for Infrastructure as Code. See the `terraform/` directory for:
+
+- **Project Configuration**: Declarative management of the Pages project settings
+- **GitHub Integration**: Automated deployment configuration
+- **Environment Management**: Production and preview deployment settings
+
+To manage the infrastructure:
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+For detailed instructions, see [`terraform/README.md`](terraform/README.md).
+
 ### Setup Deployment
 
 To set up Cloudflare Pages deployment:
