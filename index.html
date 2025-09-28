@@ -153,20 +153,121 @@
         
         // Create V shape vertices
         function createVVertices() {
-            // Very simple and large V shape - just 2 triangles
-            const vertices = [
-                // Left triangle (left arm of V)
-                -1.5, 1.0, 0.0,   // Top left
-                -0.2, -1.0, 0.0,  // Bottom center
-                -0.5, 1.0, 0.0,   // Top left inner
+            // Create a 3D V shape with depth - smaller and fatter
+            const depth = 0.3; // Depth of the V
+            const scale = 0.6; // Make it smaller overall
+            
+            const vertices = [];
+            
+            // Define V shape points (scaled down)
+            const points = [
+                // Left arm outer edge
+                [-1.5 * scale, 1.0 * scale],   // Top left outer
+                [-0.5 * scale, 1.0 * scale],   // Top left inner
+                [-0.2 * scale, -1.0 * scale],  // Bottom center left
                 
-                // Right triangle (right arm of V)
-                1.5, 1.0, 0.0,    // Top right
-                0.5, 1.0, 0.0,    // Top right inner
-                0.2, -1.0, 0.0,   // Bottom center
+                // Right arm outer edge  
+                [1.5 * scale, 1.0 * scale],    // Top right outer
+                [0.5 * scale, 1.0 * scale],    // Top right inner
+                [0.2 * scale, -1.0 * scale],   // Bottom center right
             ];
             
-            console.log('V vertices created:', vertices.length / 3, 'triangles');
+            // Front face triangles (z = depth/2)
+            // Left triangle
+            vertices.push(
+                points[0][0], points[0][1], depth/2,   // Top left outer
+                points[2][0], points[2][1], depth/2,   // Bottom center left
+                points[1][0], points[1][1], depth/2    // Top left inner
+            );
+            // Right triangle  
+            vertices.push(
+                points[3][0], points[3][1], depth/2,   // Top right outer
+                points[4][0], points[4][1], depth/2,   // Top right inner
+                points[5][0], points[5][1], depth/2    // Bottom center right
+            );
+            
+            // Back face triangles (z = -depth/2) - reversed winding for proper culling
+            // Left triangle
+            vertices.push(
+                points[0][0], points[0][1], -depth/2,  // Top left outer
+                points[1][0], points[1][1], -depth/2,  // Top left inner
+                points[2][0], points[2][1], -depth/2   // Bottom center left
+            );
+            // Right triangle
+            vertices.push(
+                points[3][0], points[3][1], -depth/2,  // Top right outer
+                points[5][0], points[5][1], -depth/2,  // Bottom center right
+                points[4][0], points[4][1], -depth/2   // Top right inner
+            );
+            
+            // Side faces connecting front and back
+            // Left arm outer edge
+            vertices.push(
+                points[0][0], points[0][1], depth/2,   // Front top left outer
+                points[0][0], points[0][1], -depth/2,  // Back top left outer
+                points[2][0], points[2][1], depth/2,   // Front bottom center left
+                
+                points[0][0], points[0][1], -depth/2,  // Back top left outer
+                points[2][0], points[2][1], -depth/2,  // Back bottom center left
+                points[2][0], points[2][1], depth/2    // Front bottom center left
+            );
+            
+            // Left arm inner edge
+            vertices.push(
+                points[1][0], points[1][1], depth/2,   // Front top left inner
+                points[2][0], points[2][1], depth/2,   // Front bottom center left
+                points[1][0], points[1][1], -depth/2,  // Back top left inner
+                
+                points[1][0], points[1][1], -depth/2,  // Back top left inner
+                points[2][0], points[2][1], depth/2,   // Front bottom center left
+                points[2][0], points[2][1], -depth/2   // Back bottom center left
+            );
+            
+            // Right arm outer edge
+            vertices.push(
+                points[3][0], points[3][1], depth/2,   // Front top right outer
+                points[5][0], points[5][1], depth/2,   // Front bottom center right
+                points[3][0], points[3][1], -depth/2,  // Back top right outer
+                
+                points[3][0], points[3][1], -depth/2,  // Back top right outer
+                points[5][0], points[5][1], depth/2,   // Front bottom center right
+                points[5][0], points[5][1], -depth/2   // Back bottom center right
+            );
+            
+            // Right arm inner edge
+            vertices.push(
+                points[4][0], points[4][1], depth/2,   // Front top right inner
+                points[4][0], points[4][1], -depth/2,  // Back top right inner
+                points[5][0], points[5][1], depth/2,   // Front bottom center right
+                
+                points[4][0], points[4][1], -depth/2,  // Back top right inner
+                points[5][0], points[5][1], -depth/2,  // Back bottom center right
+                points[5][0], points[5][1], depth/2    // Front bottom center right
+            );
+            
+            // Top left edge
+            vertices.push(
+                points[0][0], points[0][1], depth/2,   // Front top left outer
+                points[1][0], points[1][1], depth/2,   // Front top left inner
+                points[0][0], points[0][1], -depth/2,  // Back top left outer
+                
+                points[0][0], points[0][1], -depth/2,  // Back top left outer
+                points[1][0], points[1][1], depth/2,   // Front top left inner
+                points[1][0], points[1][1], -depth/2   // Back top left inner
+            );
+            
+            // Top right edge
+            vertices.push(
+                points[3][0], points[3][1], depth/2,   // Front top right outer
+                points[3][0], points[3][1], -depth/2,  // Back top right outer
+                points[4][0], points[4][1], depth/2,   // Front top right inner
+                
+                points[3][0], points[3][1], -depth/2,  // Back top right outer
+                points[4][0], points[4][1], -depth/2,  // Back top right inner
+                points[4][0], points[4][1], depth/2    // Front top right inner
+            );
+            
+            console.log('3D V vertices created:', vertices.length / 3, 'triangles');
             return new Float32Array(vertices);
         }
         
@@ -231,14 +332,16 @@
             const viewMatrix = createMatrix4();
             const projectionMatrix = createMatrix4();
             
-            // Set up view matrix (camera position)
+            // Set up view matrix (camera position - moved back further to see 3D effect)
             identity(viewMatrix);
-            translate(viewMatrix, 0, 0, -2);
+            translate(viewMatrix, 0, 0, -3);
             
-            // Enable depth testing but disable culling
+            // Enable depth testing and face culling for proper 3D rendering
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
-            gl.disable(gl.CULL_FACE);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
+            gl.frontFace(gl.CCW);
             
             // Hide loading text
             document.getElementById('loading').style.display = 'none';
