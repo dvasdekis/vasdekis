@@ -9,14 +9,75 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #000;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #2d3436 100%);
             font-family: Arial, sans-serif;
+        }
+        
+        #vanta-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #2d3436 100%);
+            overflow: hidden;
+        }
+        
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            animation: float 20s infinite linear;
+            filter: blur(1px);
+        }
+        
+        .cloud:before {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50px;
+            top: -50%;
+            left: 10%;
+            width: 50%;
+            height: 50%;
+        }
+        
+        .cloud:after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50px;
+            top: -30%;
+            right: 10%;
+            width: 60%;
+            height: 60%;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateX(-100px) translateY(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(-20px);
+                opacity: 0;
+            }
         }
         
         #webgl-canvas {
             display: block;
             width: 100vw;
             height: 100vh;
+            position: relative;
+            z-index: 2;
+            background: transparent;
         }
         
         #loading {
@@ -31,6 +92,7 @@
     </style>
 </head>
 <body>
+    <div id="vanta-background"></div>
     <div id="loading">Loading...</div>
     <canvas id="webgl-canvas"></canvas>
     
@@ -275,13 +337,17 @@
         function main() {
             console.log('Starting WebGL setup...');
             const canvas = document.getElementById('webgl-canvas');
-            const gl = canvas.getContext('webgl');
+            const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
             
             if (!gl) {
                 alert('WebGL not supported');
                 return;
             }
             console.log('WebGL context created successfully');
+            
+            // Enable blending for transparency
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
             
             // Set canvas size
             function resizeCanvas() {
@@ -355,7 +421,7 @@
                 frameCount++;
                 
                 // Clear canvas
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clearColor(0.0, 0.0, 0.0, 0.0); // Transparent background
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
                 
                 // Set up projection matrix
@@ -393,8 +459,36 @@
             animate();
         }
         
+        // Create animated CSS clouds
+        function createClouds() {
+            const background = document.getElementById('vanta-background');
+            const cloudCount = 8;
+            
+            for (let i = 0; i < cloudCount; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                
+                // Random size and position
+                const size = Math.random() * 80 + 40; // 40-120px
+                const yPos = Math.random() * 70 + 10; // 10-80% from top
+                const delay = Math.random() * 20; // 0-20s animation delay
+                const duration = Math.random() * 10 + 15; // 15-25s animation duration
+                
+                cloud.style.width = size + 'px';
+                cloud.style.height = size * 0.6 + 'px';
+                cloud.style.top = yPos + '%';
+                cloud.style.animationDelay = delay + 's';
+                cloud.style.animationDuration = duration + 's';
+                
+                background.appendChild(cloud);
+            }
+        }
+        
         // Start when page loads
-        window.addEventListener('load', main);
+        window.addEventListener('load', function() {
+            main();
+            createClouds();
+        });
     </script>
 </body>
 </html>
