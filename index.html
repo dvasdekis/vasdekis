@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vasdekis</title>
+    
+    <!-- Security Headers (limited effectiveness via meta tags) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <!-- Additional security measures -->
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=()">
+    <!-- Note: Some security headers like X-Frame-Options require HTTP headers for full effectiveness -->
     <style>
         body {
             margin: 0;
@@ -51,6 +60,17 @@
     <canvas id="webgl-canvas"></canvas>
     
     <script>
+        // Register service worker for additional security
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful');
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
         // Vertex shader source code
         const vertexShaderSource = `
             attribute vec3 a_position;
