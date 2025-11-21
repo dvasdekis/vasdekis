@@ -523,12 +523,365 @@
                 gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, stride, 0);
 
                 gl.enableVertexAttribArray(normalLocation);
-                gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, stride, 3 * 4);
 
-                // Draw the V
-                gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+                // Side faces
+                // Left arm outer
+                addTriangle(
+                    [points[0][0], points[0][1], depth / 2],
+                    [points[0][0], points[0][1], -depth / 2],
+                    [points[2][0], points[2][1], depth / 2]
+                );
+                addTriangle(
+                    [points[0][0], points[0][1], -depth / 2],
+                    [points[2][0], points[2][1], -depth / 2],
+                    [points[2][0], points[2][1], depth / 2]
+                );
 
-                requestAnimationFrame(animate);
+                // Left arm inner
+                addTriangle(
+                    [points[1][0], points[1][1], depth / 2],
+                    [points[2][0], points[2][1], depth / 2],
+                    [points[1][0], points[1][1], -depth / 2]
+                );
+                addTriangle(
+                    [points[1][0], points[1][1], -depth / 2],
+                    [points[2][0], points[2][1], depth / 2],
+                    [points[2][0], points[2][1], -depth / 2]
+                );
+
+                // Right arm outer
+                addTriangle(
+                    [points[3][0], points[3][1], depth / 2],
+                    [points[5][0], points[5][1], depth / 2],
+                    [points[3][0], points[3][1], -depth / 2]
+                );
+                addTriangle(
+                    [points[3][0], points[3][1], -depth / 2],
+                    [points[5][0], points[5][1], depth / 2],
+                    [points[5][0], points[5][1], -depth / 2]
+                );
+
+                // Right arm inner
+                addTriangle(
+                    [points[4][0], points[4][1], depth / 2],
+                    [points[4][0], points[4][1], -depth / 2],
+                    [points[5][0], points[5][1], depth / 2]
+                );
+                addTriangle(
+                    [points[4][0], points[4][1], -depth / 2],
+                    [points[5][0], points[5][1], -depth / 2],
+                    [points[5][0], points[5][1], depth / 2]
+                );
+
+                // Top left
+                addTriangle(
+                    [points[0][0], points[0][1], depth / 2],
+                    [points[1][0], points[1][1], depth / 2],
+                    [points[0][0], points[0][1], -depth / 2]
+                );
+                addTriangle(
+                    [points[0][0], points[0][1], -depth / 2],
+                    [points[1][0], points[1][1], depth / 2],
+                    [points[1][0], points[1][1], -depth / 2]
+                );
+
+                // Top right
+                addTriangle(
+                    [points[3][0], points[3][1], depth / 2],
+                    [points[3][0], points[3][1], -depth / 2],
+                    [points[4][0], points[4][1], depth / 2]
+                );
+                addTriangle(
+                    [points[3][0], points[3][1], -depth / 2],
+                    [points[4][0], points[4][1], -depth / 2],
+                    [points[4][0], points[4][1], depth / 2]
+                );
+
+                return new Float32Array(vertices);
+            }
+
+            // Main WebGL setup and animation
+            function main() {
+                console.log('Starting WebGL setup...');
+                const canvas = document.getElementById('webgl-canvas');
+                const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
+
+                if (!gl) {
+                    alert('WebGL not supported');
+                    return;
+                }
+                console.log('WebGL context created successfully');
+
+                // Enable blending for transparency
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+                // Set canvas size
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    gl.viewport(0, 0, canvas.width, canvas.height);
+                }
+
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                // Create shaders and program
+                const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+                const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+                const program = createProgram(gl, vertexShader, fragmentShader);
+
+                if (!program) {
+                    console.error('Failed to create shader program');
+                    return;
+                }
+
+                // Get attribute and uniform locations
+                const positionLocation = gl.getAttribLocation(program, 'a_position');
+                const normalLocation = gl.getAttribLocation(program, 'a_normal');
+
+                const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix');
+                const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix');
+                const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix');
+                const normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix');
+                const colorLocation = gl.getUniformLocation(program, 'u_color');
+                const lightPosLocation = gl.getUniformLocation(program, 'u_lightPosition');
+                const viewPosLocation = gl.getUniformLocation(program, 'u_viewPosition');
+
+                // Create V geometry
+                const vertices = createVVertices();
+                const buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+                // Set up matrices
+                const modelMatrix = createMatrix4();
+                const viewMatrix = createMatrix4();
+                const projectionMatrix = createMatrix4();
+                const normalMatrix = createMatrix4();
+                const tempMatrix = createMatrix4();
+
+                // Set up view matrix
+                identity(viewMatrix);
+                translate(viewMatrix, 0, 0, -3);
+
+                // Enable depth testing and face culling
+                gl.enable(gl.DEPTH_TEST);
+                gl.depthFunc(gl.LEQUAL);
+                gl.enable(gl.CULL_FACE);
+                gl.cullFace(gl.BACK);
+                gl.frontFace(gl.CCW);
+
+                // Hide loading text
+                document.getElementById('loading').style.display = 'none';
+
+                // Animation loop
+                let rotation = 0;
+                function animate() {
+                    rotation += 0.02;
+
+                    // Clear canvas
+                    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                    // Set up projection matrix
+                    const aspect = canvas.width / canvas.height;
+                    perspective(projectionMatrix, Math.PI / 4, aspect, 0.1, 100);
+
+                    // Set up model matrix with rotation
+                    identity(modelMatrix);
+                    rotateY(modelMatrix, rotation);
+
+                    // Calculate Normal Matrix (Inverse Transpose of Model)
+                    invert(tempMatrix, modelMatrix);
+                    transpose(normalMatrix, tempMatrix);
+
+                    // Use shader program
+                    gl.useProgram(program);
+
+                    // Set uniforms
+                    gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
+                    gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix);
+                    gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix);
+                    gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix);
+
+                    gl.uniform3f(colorLocation, 0.0, 0.7, 1.0); // Bright blue color
+                    gl.uniform3f(lightPosLocation, 2.0, 2.0, 5.0); // Light top right front
+                    gl.uniform3f(viewPosLocation, 0.0, 0.0, 3.0); // Camera position
+
+                    // Set up vertex attributes
+                    const stride = 6 * 4; // 3 pos + 3 normal * 4 bytes
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+                    gl.enableVertexAttribArray(positionLocation);
+                    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, stride, 0);
+
+                    gl.enableVertexAttribArray(normalLocation);
+                    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, stride, 3 * 4);
+
+                    // Draw the V
+                    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+
+                    requestAnimationFrame(animate);
+                }
+
+                animate();
+            }
+
+            // Create Storm/Lightning Background
+            function createStormBackground() {
+                const background = document.getElementById('vanta-background');
+                const canvas = document.createElement('canvas');
+                canvas.id = 'storm-canvas';
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.zIndex = '0';
+                background.innerHTML = ''; // Clear previous
+                background.appendChild(canvas);
+
+                const gl = canvas.getContext('webgl');
+                if (!gl) return;
+
+                const vertexShader = `
+                attribute vec2 a_position;
+                void main() {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                }
+            `;
+
+                const fragmentShader = `
+                precision mediump float;
+                uniform vec2 iResolution;
+                uniform float iTime;
+
+                // Noise functions
+                float hash(float n) { return fract(sin(n) * 43758.5453123); }
+                float noise(vec3 x) {
+                    vec3 p = floor(x);
+                    vec3 f = fract(x);
+                    f = f * f * (3.0 - 2.0 * f);
+                    float n = p.x + p.y * 57.0 + 113.0 * p.z;
+                    return mix(mix(mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                                   mix(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+                               mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),
+                                   mix(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
+                }
+
+                // FBM for clouds
+                float fbm(vec3 p) {
+                    float f = 0.0;
+                    f += 0.5000 * noise(p); p *= 2.02;
+                    f += 0.2500 * noise(p); p *= 2.03;
+                    f += 0.1250 * noise(p); p *= 2.01;
+                    f += 0.0625 * noise(p);
+                    return f;
+                }
+
+                void main() {
+                    vec2 uv = gl_FragCoord.xy / iResolution.xy;
+                    vec2 p = -1.0 + 2.0 * uv;
+                    p.x *= iResolution.x / iResolution.y;
+
+                    float time = iTime * 0.5;
+
+                    // Dark stormy sky base
+                    vec3 skyColor = vec3(0.05, 0.05, 0.1);
+                    vec3 cloudColor = vec3(0.2, 0.2, 0.25);
+
+                    // Moving clouds
+                    float cover = fbm(vec3(p * 2.0 + vec2(time * 0.1, 0.0), time * 0.05));
+                    cover = smoothstep(0.3, 0.8, cover);
+
+                    vec3 col = mix(skyColor, cloudColor, cover);
+
+                    // Lightning
+                    float lightning = 0.0;
+                    float t = iTime * 2.0;
+                    // Random flashes
+                    float flash = fract(sin(floor(t)) * 43758.5453);
+                    if (flash > 0.95) {
+                        // Localized flash or screen flash
+                        float flashIntensity = smoothstep(0.95, 1.0, flash) * exp(-fract(t) * 10.0);
+                        
+                        // Lightning bolt shape (simplified as high noise value)
+                        float bolt = smoothstep(0.6, 0.7, fbm(vec3(p * 10.0, time * 10.0)));
+                        
+                        lightning = flashIntensity * (0.5 + 0.5 * bolt);
+                    }
+
+                    // Add lightning color
+                    col += vec3(0.8, 0.9, 1.0) * lightning;
+
+                    // Darken edges (vignette)
+                    float vig = 1.0 - length(p) * 0.5;
+                    col *= vig;
+
+                    gl_FragColor = vec4(col, 1.0);
+                }
+            `;
+
+                function compileShader(source, type) {
+                    const shader = gl.createShader(type);
+                    gl.shaderSource(shader, source);
+                    gl.compileShader(shader);
+                    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return null;
+                    return shader;
+                }
+
+                const vShader = compileShader(vertexShader, gl.VERTEX_SHADER);
+                const fShader = compileShader(fragmentShader, gl.FRAGMENT_SHADER);
+                if (!vShader || !fShader) return;
+
+                const program = gl.createProgram();
+                gl.attachShader(program, vShader);
+                gl.attachShader(program, fShader);
+                gl.linkProgram(program);
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+
+                const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+                const buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+                const uniforms = {
+                    iResolution: gl.getUniformLocation(program, 'iResolution'),
+                    iTime: gl.getUniformLocation(program, 'iTime')
+                };
+                const posLoc = gl.getAttribLocation(program, 'a_position');
+
+                function resize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    gl.viewport(0, 0, canvas.width, canvas.height);
+                }
+
+                let startTime = Date.now();
+                function animate() {
+                    resize();
+                    gl.useProgram(program);
+                    gl.uniform2f(uniforms.iResolution, canvas.width, canvas.height);
+                    gl.uniform1f(uniforms.iTime, (Date.now() - startTime) / 1000);
+
+                    gl.enableVertexAttribArray(posLoc);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                    requestAnimationFrame(animate);
+                }
+
+                window.addEventListener('resize', resize);
+                animate();
+            }
+
+            window.addEventListener('load', function () {
+                main();
+                createStormBackground();
+            });
     </script>
 </body>
 
