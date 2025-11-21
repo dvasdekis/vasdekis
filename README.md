@@ -1,5 +1,5 @@
 # vasdekis
-Vasdekis homepage
+Vasdekis homepage - cool!
 
 ## Preview
 
