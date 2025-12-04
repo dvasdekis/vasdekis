@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Unit Tests</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #111;
+            color: #eee;
+            padding: 20px;
+        }
+
+        .header {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #aaa;
+        }
+
+        .success {
+            color: #4f4;
+        }
+
+        .error {
+            color: #f44;
+        }
+
+        .info {
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test Runner</h1>
+    <div id="results"></div>
+    <script type="module">
+        import { runTests as runMatrixTests } from './matrix.test.js';
+        import { runWebGLTests } from './webgl.test.js';
+
+        runMatrixTests();
+        runWebGLTests();
+    </script>
+</body>
+
+</html>
