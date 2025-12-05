@@ -1,5 +1,6 @@
 import { createMatrix4, identity, perspective, translate, rotateY, invert, transpose, createShader, createProgram } from './utils.js';
 import { createCyberGridBackground } from './background.js';
+import { createLightningGeometry, initLightningProgram } from './lightning.js';
 
 // Shaders
 const vertexShaderSource = `
@@ -246,6 +247,22 @@ export function main() {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
+    // --- Lightning Setup ---
+    const lightningProgram = initLightningProgram(gl);
+    const lightningBuffer = gl.createBuffer();
+    const lightningPosLoc = gl.getAttribLocation(lightningProgram, 'a_position');
+    const lightningModelLoc = gl.getUniformLocation(lightningProgram, 'u_modelMatrix');
+    const lightningViewLoc = gl.getUniformLocation(lightningProgram, 'u_viewMatrix');
+    const lightningProjLoc = gl.getUniformLocation(lightningProgram, 'u_projectionMatrix');
+    const lightningColorLoc = gl.getUniformLocation(lightningProgram, 'u_color');
+
+    let lightningActive = false;
+    let lightningTimer = 0;
+    let lightningVertsCount = 0;
+
+    // Start Background
+    const bgController = createCyberGridBackground();
+
     // Set up matrices
     const modelMatrix = createMatrix4();
     const viewMatrix = createMatrix4();
@@ -281,6 +298,9 @@ export function main() {
         const aspect = canvas.width / canvas.height;
         perspective(projectionMatrix, Math.PI / 4, aspect, 0.1, 100);
 
+        // --- Render V Logo ---
+        gl.useProgram(program);
+
         // Set up model matrix with rotation
         identity(modelMatrix);
         rotateY(modelMatrix, rotation);
@@ -288,9 +308,6 @@ export function main() {
         // Calculate Normal Matrix (Inverse Transpose of Model)
         invert(tempMatrix, modelMatrix);
         transpose(normalMatrix, tempMatrix);
-
-        // Use shader program
-        gl.useProgram(program);
 
         // Set uniforms
         gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix);
@@ -316,6 +333,63 @@ export function main() {
         // Draw the V
         gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
 
+        // --- Render Lightning ---
+        // Trigger logic
+        if (!lightningActive && Math.random() < 0.02) { // 2% chance per frame
+            lightningActive = true;
+            lightningTimer = 1.0;
+
+            // Generate bolt
+            const startX = (Math.random() - 0.5) * 10;
+            const startY = 5.0; // High up
+            const startZ = -5.0 - Math.random() * 5; // Behind
+
+            const endX = (Math.random() - 0.5) * 10;
+            const endY = -2.0; // Ground level (approx)
+            const endZ = -2.0 - Math.random() * 5;
+
+            const boltVerts = createLightningGeometry([startX, startY, startZ], [endX, endY, endZ]);
+            lightningVertsCount = boltVerts.length / 3;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, lightningBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, boltVerts, gl.DYNAMIC_DRAW);
+
+            // Trigger explosion in background
+            // Map world X/Z to UV space roughly. 
+            // Assuming view is centered and grid is infinite.
+            // Let's just pass a mapped value.
+            bgController.triggerExplosion(endX * 0.1, endZ * 0.1); // Scale down
+        }
+
+        if (lightningActive) {
+            gl.useProgram(lightningProgram);
+
+            // Identity model for lightning (vertices are already world space)
+            identity(modelMatrix);
+
+            gl.uniformMatrix4fv(lightningModelLoc, false, modelMatrix);
+            gl.uniformMatrix4fv(lightningViewLoc, false, viewMatrix);
+            gl.uniformMatrix4fv(lightningProjLoc, false, projectionMatrix);
+
+            // Flash color (Cyan/Magenta mix)
+            if (Math.random() > 0.5) {
+                gl.uniform3f(lightningColorLoc, 0.0, 1.0, 1.0); // Cyan
+            } else {
+                gl.uniform3f(lightningColorLoc, 1.0, 0.0, 1.0); // Magenta
+            }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, lightningBuffer);
+            gl.enableVertexAttribArray(lightningPosLoc);
+            gl.vertexAttribPointer(lightningPosLoc, 3, gl.FLOAT, false, 0, 0);
+
+            gl.drawArrays(gl.LINE_STRIP, 0, lightningVertsCount);
+
+            lightningTimer -= 0.05;
+            if (lightningTimer <= 0) {
+                lightningActive = false;
+            }
+        }
+
         requestAnimationFrame(animate);
     }
 
@@ -323,7 +397,5 @@ export function main() {
 }
 
 // Initialize
-// Initialize
 console.log('Module loaded, starting app...');
 main();
-createCyberGridBackground();
